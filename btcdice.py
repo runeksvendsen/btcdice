@@ -62,8 +62,7 @@ from bitcoin import base58
 import hashlib
 import Crypto.Hash.SHA256 as sha256
 import argparse
-
-THROWS = 100
+import math
 
 def decode(s, base):
 	""" Decodes the base<n>-encoded string s into an integer """
@@ -102,7 +101,12 @@ def get_addr(k):
 def main():
 	parser = argparse.ArgumentParser(description="Generate a Bitcoin private key using a dice.")
 	parser.add_argument("--faces", type=int, default=6, help="specify the number of faces on your dice")
+	parser.add_argument("--entropy", type=int, default=256, help="desired amount of entropy (in bits)")
 	args = parser.parse_args()
+
+	#calculate how many throws we need to reach the desired amount of entropy
+	entropy_per_throw = math.log(args.faces, 2)
+	THROWS = int(math.ceil(args.entropy / entropy_per_throw))
 
 	alphabet = [hex(i).lstrip('0x') for i in range(1,args.faces+1)]
 
@@ -149,7 +153,6 @@ faces on the dice:"""
 
 	print "Address: %s" % (addr)
 	print "Private key: %s" % (pkey)
-
 
 
 if __name__ == "__main__":
