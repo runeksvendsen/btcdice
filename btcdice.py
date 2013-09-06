@@ -61,19 +61,19 @@ from bitcoin import key as ecdsa
 from bitcoin import base58
 import hashlib
 import Crypto.Hash.SHA256 as sha256
+import argparse
 
-alphabet = '123456'
-base_count = len(alphabet)
 THROWS = 100
 
-def decode(s):
-	""" Decodes the base6-encoded string s into an integer """
+def decode(s, base):
+	""" Decodes the base<n>-encoded string s into an integer """
+	alphabet = [hex(i).lstrip('0x') for i in range(1,base+1)]
 	decoded = 0
 	multi = 1
 	s = s[::-1]
 	for char in s:
 		decoded += multi * alphabet.index(char)
-		multi = multi * base_count
+		multi = multi * base
 		
 	return decoded
 
@@ -99,40 +99,58 @@ def get_addr(k):
 	pkey = base58_check_encode(payload, 128)
 	return addr, pkey
 
-getch = _Getch()
+def main():
+	parser = argparse.ArgumentParser(description="Generate a Bitcoin private key using a dice.")
+	parser.add_argument("--faces", type=int, default=6, help="specify the number of faces on your dice")
+	args = parser.parse_args()
 
-print "Throw a dice %d times. After each throw, enter the value thrown..." % (THROWS)
-print "Press Ctrl+C if you want to exit at any point"
+	alphabet = [hex(i).lstrip('0x') for i in range(1,args.faces+1)]
 
-result = ""
-for i in range(0,THROWS):
-	while True:
-		sys.stdout.write("\nDice throw %d out of %d: " % (THROWS, i+1))
-		char = getch()
+	getch = _Getch()
 
-		#exit on Ctrl+C
-		if ord(char) == 3:
-			sys.exit()
+	print "Throw a dice %d times. After each throw, enter the value thrown..." % (THROWS)
+	print "Press Ctrl+C if you want to exit at any point"
 
-		sys.stdout.write(char)
+	if args.faces > 9:
+		print """\nNote: The following characters represent the respective
+faces on the dice:"""
+		for char, face in zip(alphabet, [str(i) for i in range(1,args.faces+1)]):
+			print "\t%s: %s" % (char, face)
 
-		if char not in alphabet:
-			sys.stdout.write("\nSorry. Not a valid throw. Try again.")
-			continue
+	result = []
+	for i in range(0,THROWS):
+		while True:
+			sys.stdout.write("\nDice throw %d out of %d: " % (THROWS, i+1))
+			char = getch()
 
-		if ord(char) != 3:
-			result += char
-			break
+			#exit on Ctrl+C
+			if ord(char) == 3:
+				sys.exit()
 
-print "\n"
+			sys.stdout.write(char)
 
-num = decode(result)
-secret = hex(num).lstrip('0x').rstrip('L')[0:64].ljust(64, '0').decode('hex')
+			if char not in alphabet:
+				sys.stdout.write("\nSorry. Not a valid throw. Try again.")
+				continue
 
-key = ecdsa.CKey()
-key.generate(secret)
+			if ord(char) != 3:
+				result.append(char)
+				break
 
-addr,pkey = get_addr(key)
+	print "\n"
 
-print "Address: %s" % (addr)
-print "Private key: %s" % (pkey)
+	num = decode(result, args.faces)
+	secret = hex(num).lstrip('0x').rstrip('L')[0:64].ljust(64, '0').decode('hex')
+
+	key = ecdsa.CKey()
+	key.generate(secret)
+
+	addr,pkey = get_addr(key)
+
+	print "Address: %s" % (addr)
+	print "Private key: %s" % (pkey)
+
+
+
+if __name__ == "__main__":
+	main()
