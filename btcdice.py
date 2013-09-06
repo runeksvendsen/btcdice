@@ -19,40 +19,40 @@ Usage:
 	of entropy."""
 
 class _Getch:
-    """Gets a single character from standard input.  Does not echo to the
+	"""Gets a single character from standard input.  Does not echo to the
 screen."""
-    def __init__(self):
-        try:
-            self.impl = _GetchWindows()
-        except ImportError:
-            self.impl = _GetchUnix()
+	def __init__(self):
+		try:
+			self.impl = _GetchWindows()
+		except ImportError:
+			self.impl = _GetchUnix()
 
-    def __call__(self): return self.impl()
+	def __call__(self): return self.impl()
 
 
 class _GetchUnix:
-    def __init__(self):
-        import tty, sys
+	def __init__(self):
+		import tty, sys
 
-    def __call__(self):
-        import sys, tty, termios
-        fd = sys.stdin.fileno()
-        old_settings = termios.tcgetattr(fd)
-        try:
-            tty.setraw(sys.stdin.fileno())
-            ch = sys.stdin.read(1)
-        finally:
-            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-        return ch
+	def __call__(self):
+		import sys, tty, termios
+		fd = sys.stdin.fileno()
+		old_settings = termios.tcgetattr(fd)
+		try:
+			tty.setraw(sys.stdin.fileno())
+			ch = sys.stdin.read(1)
+		finally:
+			termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+		return ch
 
 
 class _GetchWindows:
-    def __init__(self):
-        import msvcrt
+	def __init__(self):
+		import msvcrt
 
-    def __call__(self):
-        import msvcrt
-        return msvcrt.getch()
+	def __call__(self):
+		import msvcrt
+		return msvcrt.getch()
 
 import sys
 from bitcoin import key as ecdsa
@@ -76,26 +76,26 @@ def decode(s):
 	return decoded
 
 def dsha256(s):
-    return sha256.new(sha256.new(s).digest()).digest()
+	return sha256.new(sha256.new(s).digest()).digest()
  
 def rhash(s):
-    h1 = hashlib.new('ripemd160')
-    h1.update(hashlib.sha256(s).digest())
-    return h1.digest()
+	h1 = hashlib.new('ripemd160')
+	h1.update(hashlib.sha256(s).digest())
+	return h1.digest()
 
 def base58_check_encode(s, version=0):
-    vs = chr(version) + s
-    check = dsha256(vs)[:4]
-    return base58.encode(vs + check)
+	vs = chr(version) + s
+	check = dsha256(vs)[:4]
+	return base58.encode(vs + check)
 
 def get_addr(k):
-    pubkey = k.get_pubkey()
-    secret = k.prikey
-    hash160 = rhash(pubkey)
-    addr = base58_check_encode(hash160)
-    payload = secret
-    pkey = base58_check_encode(payload, 128)
-    return addr, pkey
+	pubkey = k.get_pubkey()
+	secret = k.prikey
+	hash160 = rhash(pubkey)
+	addr = base58_check_encode(hash160)
+	payload = secret
+	pkey = base58_check_encode(payload, 128)
+	return addr, pkey
 
 getch = _Getch()
 
