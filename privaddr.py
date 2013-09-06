@@ -1,5 +1,6 @@
 import hashlib
 import Crypto.Hash.SHA256 as sha256
+import binascii
 
 from bitcoin import key as ecdsa
 from bitcoin import base58
@@ -13,8 +14,8 @@ def rhash(s):
 	h1.update(hashlib.sha256(s).digest())
 	return h1.digest()
 
-def base58_check_encode(s, version=0):
-	vs = chr(version) + s
+def base58_check_encode(s, version=b'\x00'):
+	vs = version + s
 	check = dsha256(vs)[:4]
 	return base58.encode(vs + check)
 
@@ -24,11 +25,11 @@ def get_addr(k):
 	hash160 = rhash(pubkey)
 	addr = base58_check_encode(hash160)
 	payload = secret
-	pkey = base58_check_encode(payload, 128)
+	pkey = base58_check_encode(payload, b'\x80')
 	return addr, pkey
 
 def num_to_secret(num):
-	return hex(num).lstrip('0x').rstrip('L')[0:64].ljust(64, '0').decode('hex')
+	return binascii.unhexlify(hex(num).lstrip('0x').rstrip('L')[0:64].ljust(64, '0'))
 
 def throws_to_keyaddr(throws, faces):
 	num = dice_to_10(throws, faces)

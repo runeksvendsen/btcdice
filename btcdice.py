@@ -46,8 +46,8 @@ def main():
 
 	getch = _Getch()
 
-	print "Throw a dice %d times. After each throw, enter the value thrown..." % (THROWS)
-	print "Press Ctrl+C if you want to exit at any point"
+	print("Throw a dice %d times. After each throw, enter the value thrown..." % (THROWS))
+	print("Press Ctrl+C if you want to exit at any point")
 
 	result = []
 	for i in range(0,THROWS):
@@ -77,12 +77,12 @@ def main():
 			result.append(char)
 			break
 
-	print "\n"
+	print("\n")
 
 	addr,pkey = privaddr.throws_to_keyaddr(result, args.faces)
 
-	print "Address: %s" % (addr)
-	print "Private key: %s" % (pkey)
+	print("Address: %s" % (addr))
+	print("Private key: %s" % (pkey))
 
 if __name__ == "__main__":
 	main()
