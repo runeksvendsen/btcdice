@@ -3,7 +3,9 @@
 """Generate a Bitcoin private key and its corresponding
 address from throwing a dice.
 
-Borrows code from:	http://code.activestate.com/recipes/134892/
+Borrows code from:
+	http://code.activestate.com/recipes/134892/
+	https://gist.github.com/josephdunn/5347612/
 							
 Depends on: https://github.com/jgarzik/python-bitcoinlib
 
