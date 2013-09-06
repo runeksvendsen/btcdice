@@ -66,7 +66,7 @@ import math
 
 def decode(s, base):
 	""" Decodes the base<n>-encoded string s into an integer """
-	alphabet = [hex(i).lstrip('0x') for i in range(1,base+1)]
+	alphabet = [str(i) for i in range(1,base+1)]
 	decoded = 0
 	multi = 1
 	s = s[::-1]
@@ -98,6 +98,11 @@ def get_addr(k):
 	pkey = base58_check_encode(payload, 128)
 	return addr, pkey
 
+def getch_print(getch):
+	char = getch()
+	sys.stdout.write(char)
+	return char
+
 def main():
 	parser = argparse.ArgumentParser(description="Generate a Bitcoin private key using a dice.")
 	parser.add_argument("--faces", type=int, default=6, help="specify the number of faces on your dice")
@@ -108,38 +113,40 @@ def main():
 	entropy_per_throw = math.log(args.faces, 2)
 	THROWS = int(math.ceil(args.entropy / entropy_per_throw))
 
-	alphabet = [hex(i).lstrip('0x') for i in range(1,args.faces+1)]
+	alphabet = [str(i) for i in range(1,args.faces+1)]
 
 	getch = _Getch()
 
 	print "Throw a dice %d times. After each throw, enter the value thrown..." % (THROWS)
 	print "Press Ctrl+C if you want to exit at any point"
 
-	if args.faces > 9:
-		print """\nNote: The following characters represent the respective
-faces on the dice:"""
-		for char, face in zip(alphabet, [str(i) for i in range(1,args.faces+1)]):
-			print "\t%s: %s" % (char, face)
-
 	result = []
 	for i in range(0,THROWS):
 		while True:
 			sys.stdout.write("\nDice throw %d out of %d: " % (THROWS, i+1))
-			char = getch()
+			
+			char = getch_print(getch)
 
 			#exit on Ctrl+C
-			if ord(char) == 3:
+			if ord(char[0]) == 3:
 				sys.exit()
 
-			sys.stdout.write(char)
+			if args.faces >= 10:
+				char += getch_print(getch)
+
+			char = char.rstrip('\r')
+
+			try:
+				char = str(int(char)) #strip any leading zeros
+			except ValueError:
+				pass
 
 			if char not in alphabet:
 				sys.stdout.write("\nSorry. Not a valid throw. Try again.")
 				continue
 
-			if ord(char) != 3:
-				result.append(char)
-				break
+			result.append(char)
+			break
 
 	print "\n"
 
